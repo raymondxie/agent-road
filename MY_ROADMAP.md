@@ -4,23 +4,23 @@
 
 ## Profile
 - Level: Built simple agents (not yet shipped to production)
-- Time: 5–10 hrs/week (using 7.5 hr midpoint for planning)
+- Time: 10 hrs/week
 - Stack: Python + TypeScript · Anthropic + OpenAI
 - Goal: All — get hired, ship at current job, launch a product, learn for fun
-- Total estimated duration: ~36 weeks + ongoing Phase 5
+- Total estimated duration: ~29 weeks + ongoing Phase 5
 
 ## Phase Plan
 
 | Phase | Mode | Adjusted Duration | Why |
 |---|---|---|---|
 | Phase 0: Foundations | SPEEDRUN | ~0.5 weeks (3–4 sessions) | You've built agents; skip the "what is an agent" beginner ramp. Write the 2-page doc and move on. |
-| Phase 1: First Agent | NORMAL | ~6 weeks | Scratch agent + both Claude Agent SDK *and* OpenAI Agents SDK — you want both provider ecosystems solid. |
-| Phase 2: Real Architecture | NORMAL | ~9 weeks | LangGraph Python is the primary runtime; add Mastra (TS-native) as a parallel exploration for TS depth. |
-| Phase 3: Build the Harness | NORMAL | ~9 weeks | Do not skip. Building from scratch is the fastest path to "get hired" credibility and understanding production trade-offs. |
-| Phase 4: Evals & Regression | DEEP | ~11 weeks | Weighted heaviest — eval infra is the #1 hiring signal and the #1 quality gap in the field. |
+| Phase 1: First Agent | NORMAL | ~5 weeks | Scratch agent + both Claude Agent SDK *and* OpenAI Agents SDK — you want both provider ecosystems solid. |
+| Phase 2: Real Architecture | NORMAL | ~7 weeks | LangGraph Python is the primary runtime; add Mastra (TS-native) as a parallel exploration for TS depth. |
+| Phase 3: Build the Harness | NORMAL | ~7 weeks | Do not skip. Building from scratch is the fastest path to "get hired" credibility and understanding production trade-offs. |
+| Phase 4: Evals & Regression | DEEP | ~9 weeks | Weighted heaviest — eval infra is the #1 hiring signal and the #1 quality gap in the field. |
 | Phase 5: Production Hardening | DEEP | Ongoing | Elevated for product-launch discipline. Cost, safety, drift monitoring never stop. |
 
-*Math: 0.5 + 6 + 9 + 9 + 11 = 35.5 → rounded to 36 weeks. Canonical 17-week timeline × 2.5 pace adjustment for 7.5 hrs/week.*
+*Math: 0.5 + 5 + 7 + 7 + 9 = 28.5 → rounded to 29 weeks. Canonical 17-week timeline × 2.0 pace adjustment for 10 hrs/week.*
 
 ---
 

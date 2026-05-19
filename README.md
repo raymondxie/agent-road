@@ -1,6 +1,6 @@
 # Agent Engineering Roadmap
 
-A personalized 36-week study plan for becoming a production-ready agent engineer.
+A personalized 29-week study plan for becoming a production-ready agent engineer.
 
 Based on the [2026 Agent Engineering Roadmap](https://github.com/codejunkie99/agent-roadmap-2026) and inspired by [@av1dlive](https://x.com/av1dlive/status/2052063154423898603?s=46&t=5ph6HbnFtYfyltxgMGTT_Q).
 
