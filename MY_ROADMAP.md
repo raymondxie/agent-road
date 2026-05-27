@@ -67,7 +67,7 @@
 
 ## Project Deliverables
 
-- [ ] **Phase 0:** 2-page mental-model doc (hand-written or typed without references)
+- [x] **Phase 0:** 2-page mental-model doc (hand-written or typed without references)
 - [ ] **Phase 1a:** ~100-line scratch agent using `anthropic.messages.create` (web_search, read_file, write_file)
 - [ ] **Phase 1b:** Same agent rebuilt on Claude Agent SDK (CLAUDE.md, Skill, PostToolUse hook, Task sub-agent)
 - [ ] **Phase 1c:** Same agent rebuilt on OpenAI Agents SDK — note what differs structurally
