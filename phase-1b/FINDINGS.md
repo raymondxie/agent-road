@@ -113,6 +113,66 @@ In Phase 1a, the SYSTEM prompt was injected per-API-call and controlled exactly 
 
 ---
 
+## 5. Instruction wording is your scheduler
+
+In Phase 1a, parallelism is explicit code: `asyncio.gather()` or `threading.Thread`.
+You can read it, reason about it, and test it.
+
+In Phase 1b, **the words in your skill instructions determine the execution schedule**,
+and the effect is subtle.
+
+The original skill had:
+
+```
+### Step 2 — Spawn Technology sub-agent
+Use the Agent tool to delegate Technology...
+
+### Step 3 — Fetch Business and World Events (this instance)
+While the sub-agent runs, use web_search...
+```
+
+**What actually ran:**
+```
+Turn 1: Agent(Technology)              ← blocks until sub-agent finishes
+Turn 2: WebSearch(Business)
+        WebSearch(World Events)        ← these two parallel
+Turn 3: Write
+```
+
+Technology ran alone first because `Agent` is a single tool call per turn — once
+Claude issues it, the turn ends and Claude waits for the result before the next turn.
+The phrase "while the sub-agent runs" reads as parallelism but produces serialization.
+
+**The fix** — collapse to one step with explicit parallel instruction:
+
+```
+### Step 2 — Fetch all three sections in parallel
+In a single response, issue all three WebSearch calls simultaneously:
+- WebSearch: business news
+- WebSearch: technology news
+- WebSearch: world events
+All three calls must appear in the same response so they run in parallel.
+Do not issue them one at a time.
+```
+
+**What runs now:**
+```
+Turn 1: WebSearch(Business) + WebSearch(Technology) + WebSearch(World Events)  ← truly parallel
+Turn 2: Write
+```
+
+**The lesson:** In a declarative platform, your instructions are the scheduler.
+Words like "then", "while", "once X returns" directly translate to turn boundaries
+and blocking. To get parallelism you must be explicit: name all the calls, say
+"in a single response", say "simultaneously". Vague sequencing language produces
+serial execution even when you intended concurrency.
+
+In Phase 1a you'd write `asyncio.gather(fetch_tech(), fetch_business(), fetch_world())`.
+In Phase 1b you write "issue all three calls in the same response." Same semantics,
+completely different medium.
+
+---
+
 ## Phase 1a vs Phase 1b: What you own
 
 | Concern | Phase 1a (raw API) | Phase 1b (Claude Agent SDK) |

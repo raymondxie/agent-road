@@ -15,33 +15,18 @@ formatted markdown briefing to disk.
 Use today's date unless `<date>` was provided as an argument.
 Set `output_path = phase-1b/briefings/{date}.md`.
 
-### Step 2 — Spawn Technology sub-agent
-Use the **Agent tool** to delegate the Technology section to a sub-agent. Pass it
-this prompt (substitute the actual date):
+### Step 2 — Fetch all three sections in parallel
+In a **single response**, issue all three WebSearch calls simultaneously:
 
-> Search the web for today's ({date}) top 3–4 technology news stories covering AI,
-> software, hardware, and major platform news. Return ONLY a formatted markdown
-> section — no preamble, no closing remarks:
->
-> ## 💻 Technology
->
-> ### [Headline]
-> [2–3 sentence summary.] *[Source] ([Date])*
->
-> (repeat for 3–4 stories)
+- `WebSearch`: today's ({date}) top 3–4 **business** news — market moves, earnings, major deals, macro policy
+- `WebSearch`: today's ({date}) top 3–4 **technology** news — AI, software, hardware, major platforms
+- `WebSearch`: today's ({date}) top 3–4 **world events** — geopolitics, major international events, climate
 
-Store the sub-agent's response as `tech_section`. Do not wait — proceed to Step 3
-in parallel.
+All three calls must appear in the same response so they run in parallel.
+Do not issue them one at a time.
 
-### Step 3 — Fetch Business and World Events (this instance)
-While the sub-agent runs, use web_search to find today's top stories for:
-
-**Business** (3–4 stories): market moves, earnings, major deals, macro policy
-**World Events** (3–4 stories): geopolitics, major international events, climate
-
-### Step 4 — Assemble and write
-Once the sub-agent has returned `tech_section`, assemble the full briefing and write
-it to `output_path`:
+### Step 3 — Assemble and write
+Assemble all three results into the briefing and write it to `output_path`:
 
 ```
 # 📰 Daily News Briefing — {date}

@@ -1,3 +1,5 @@
 [2026-06-04T16:51:07.637785Z] Write → ?
 [2026-06-04T16:54:29.464836Z] Write → ?
 [2026-06-04T16:58:27.881258Z] Write → /Users/raymond.xie/Learning/agent-road/phase-1b/FINDINGS.md
+[2026-06-04T17:11:21.960561Z] Write → /Users/raymond.xie/.claude/projects/-Users-raymond-xie-Learning-agent-road/memory/project_phase1b_sdk_insight.md
+[2026-06-04T17:11:28.907462Z] Write → /Users/raymond.xie/.claude/projects/-Users-raymond-xie-Learning-agent-road/memory/MEMORY.md
