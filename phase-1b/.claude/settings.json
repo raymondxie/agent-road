@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "mkdir -p phase-1b/briefings && python3 -c \"import os,json,datetime; i=json.loads(os.environ.get('CLAUDE_TOOL_INPUT','{}')); p=i.get('file_path','?'); open('phase-1b/briefings/write-log.txt','a').write(f'[{datetime.datetime.utcnow().isoformat()}Z] Write → {p}\\n')\" 2>/dev/null || true"
+            "command": "mkdir -p phase-1b/briefings && python3 -c \"import sys,json,datetime; d=json.load(sys.stdin); p=d.get('tool_input',{}).get('file_path','?'); open('phase-1b/briefings/write-log.txt','a').write(f\\\"[{datetime.datetime.utcnow().isoformat()}Z] Write → {p}\\\\n\\\")\" 2>/dev/null || true"
           }
         ]
       }

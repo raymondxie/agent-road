@@ -1,6 +1,6 @@
-# Daily News Briefing
+# News Briefing (Phase 1b)
 
-Compile today's top news across Business, Technology, and World Events and write a
+Phase 1b learning agent — compiles today's top news across Business, Technology, and World Events and writes a
 formatted markdown briefing to disk.
 
 ## Arguments
