@@ -68,8 +68,8 @@
 ## Project Deliverables
 
 - [x] **Phase 0:** 2-page mental-model doc (hand-written or typed without references)
-- [ ] **Phase 1a:** ~100-line scratch agent using `anthropic.messages.create` (web_search, read_file, write_file)
-- [ ] **Phase 1b:** Same agent rebuilt on Claude Agent SDK (CLAUDE.md, Skill, PostToolUse hook, Task sub-agent)
+- [x] **Phase 1a:** ~100-line scratch agent using `anthropic.messages.create` (web_search, read_file, write_file)
+- [x] **Phase 1b:** Same agent rebuilt on Claude Agent SDK (CLAUDE.md, Skill, PostToolUse hook, Task sub-agent)
 - [ ] **Phase 1c:** Same agent rebuilt on OpenAI Agents SDK — note what differs structurally
 - [ ] **Phase 1d:** Daily-briefing agent running for 1 week on real data → public GitHub repo + writeup
 - [ ] **Phase 2a:** Research-analyst deep agent in LangGraph Python (PostgresSaver, human-in-the-loop, LangSmith trace URL)
