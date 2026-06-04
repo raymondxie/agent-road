@@ -4,6 +4,43 @@ Real discoveries from building and running the Claude Agent SDK pattern.
 
 ---
 
+## 0. "Claude Agent SDK" is a misleading label — Phase 1a is actually the SDK
+
+The roadmap calls Phase 1b the "Claude Agent SDK" pattern, but this inverts the
+traditional meaning of SDK.
+
+**Phase 1a** (`anthropic.messages.create` + `while True:`) is the SDK pattern:
+- You import a library and call functions
+- You own the loop, state, and dispatch
+- It's imperative — every behavior is explicit in your code
+- It runs anywhere Python runs
+
+**Phase 1b** (CLAUDE.md + Skill + Hook + Agent tool) is a **declarative platform**
+pattern, not an SDK:
+- You write markdown files that a runtime (Claude Code) interprets
+- You declare intent; the platform executes it
+- Debugging means observing platform behavior, not reading stack traces
+- It only runs inside Claude Code
+
+**Better analogies:**
+
+| Phase 1a | Phase 1b |
+|---|---|
+| bash script | Dockerfile |
+| Express route handler | nginx config |
+| Python calling an API | GitHub Actions workflow YAML |
+| Imperative code | Infrastructure-as-configuration |
+
+The practical consequence: Phase 1b gives you less control but higher composability.
+You can build and ship a workflow in 30 lines of markdown that would take 200 lines
+of Python in Phase 1a. The tradeoff is opacity — when something goes wrong, you're
+debugging the platform's interpretation of your instructions, not your own code.
+
+**For the write-up:** Don't call Phase 1b "the SDK." Call it the
+"declarative agent configuration" pattern, and position Phase 1a as the SDK baseline.
+
+---
+
 ## 1. Hook data arrives via stdin, not env vars
 
 **What I assumed:** PostToolUse hooks receive tool input via an env var like `CLAUDE_TOOL_INPUT`.
