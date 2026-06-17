@@ -1,0 +1,4 @@
+.venv/
+briefings/
+__pycache__/
+*.pyc
