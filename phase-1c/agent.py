@@ -7,7 +7,7 @@ from pathlib import Path
 
 from agents import Agent, Runner, WebSearchTool, function_tool
 
-MODEL = "gpt-4o-mini"
+MODEL = "gpt-4o"
 
 INSTRUCTIONS = (
     "You are a daily news briefing agent. Search for today's top stories "

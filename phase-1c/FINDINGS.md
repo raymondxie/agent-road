@@ -73,6 +73,21 @@ The Phase 1b model is heavier (separate process, separate context window) but
 more isolated. The Phase 1c model is lightweight but means all agents share the
 same failure domain.
 
+### Finding #6 — `WebSearchTool` silently does nothing with `gpt-4o-mini`
+
+`WebSearchTool` is a hosted tool that runs via OpenAI's Responses API. With
+`gpt-4o-mini`, the model never calls it — it skips the search and generates
+plausible-sounding but fully hallucinated stories with fake citations. There is
+no error or warning; the agent just completes normally.
+
+Switching to `gpt-4o` fixes it: the tool fires, results are grounded in real
+sources, and citations include actual URLs. Verified with `AgentHooks.on_tool_start`
+and a forced query (current SF weather) that the model cannot answer from training.
+
+**Lesson:** With hosted tools, always verify tool invocation explicitly — the model
+may silently skip tools it doesn't know how to invoke. `AgentHooks` is the right
+instrumentation for this.
+
 ## What to Install
 
 ```bash
