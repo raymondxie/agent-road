@@ -88,12 +88,22 @@ and a forced query (current SF weather) that the model cannot answer from traini
 may silently skip tools it doesn't know how to invoke. `AgentHooks` is the right
 instrumentation for this.
 
-## What to Install
+## Running and Debugging
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install openai-agents
+pip install -r requirements.txt
 ```
 
 Requires `OPENAI_API_KEY` in the environment.
+
+To verify tools are actually firing (see Finding #6):
+
+```bash
+python diagnose.py
+```
+
+`diagnose.py` uses `AgentHooks.on_tool_start` / `on_tool_end` to print every tool
+invocation and a 200-character preview of the result. Run it whenever you suspect
+the model is skipping a tool silently.
