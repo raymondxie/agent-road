@@ -2,3 +2,7 @@
 __pycache__/
 *.pyc
 diag-output.txt
+.env
+phase-1d/briefings/run-log.txt
+phase-1d/briefings/launchd-out.txt
+phase-1d/briefings/launchd-err.txt
