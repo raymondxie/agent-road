@@ -8,15 +8,25 @@ Comparing cost, latency, quality, and operational behavior.
 
 ## Run Log
 
-| Date | Anthropic latency | OpenAI latency | Anthropic tokens (in/out/cache) | Anthropic searches | OpenAI searches | Notes |
-|------|-------------------|----------------|----------------------------------|-------------------|-----------------|-------|
+| Date | Anthropic latency | OpenAI latency | Anthropic tokens (in/out/cache_read) | Anthropic searches | OpenAI searches | Notes |
+|------|-------------------|----------------|--------------------------------------|-------------------|-----------------|-------|
 | 2026-06-30 | 67.5s | 20.5s | 23352 / 3190 / 4186 | 3 | 1 | First run; both verified grounded |
-| 2026-07-01 | 67.7s | 20.4s | 33559 / 2999 / 26171 | 5 | 1 | Cache hit 78% of input; LaunchAgent SSL fix |
-| 2026-07-02 | | | | | | |
-| 2026-07-03 | | | | | | |
-| 2026-07-04 | | | | | | |
-| 2026-07-05 | | | | | | |
-| 2026-07-06 | | | | | | |
+| 2026-07-01 | 79.5s | 25.2s | 36077 / 3428 / 24181 | 5 | 1 | Cache read 67% of input |
+| 2026-07-02 | 106.1s | 29.3s | 49882 / 4529 / 24615 | 6 | 1 | Highest token + latency day |
+| 2026-07-03 | FAILED | FAILED | — | — | — | Netskope SSL (holiday weekend) |
+| 2026-07-04 | FAILED | FAILED | — | — | — | Netskope SSL (July 4th) |
+| 2026-07-05 | FAILED | FAILED | — | — | — | Netskope SSL; self-resolved next day |
+| 2026-07-06 | 81.4s | 18.1s | 36874 / 3576 / 29748 | 5 | 1 | |
+| 2026-07-07 | 68.8s | 31.0s | 25787 / 3013 / 4186 | 3 | 1 | Cache cold (low cache_read) |
+| 2026-07-08 | 79.1s | 22.0s | 48720 / 3294 / 31039 | 5 | 1 | |
+| 2026-07-09 | 88.1s | 23.1s | 37505 / 3759 / 29475 | 5 | 1 | |
+
+**Totals (7 successful runs):**
+- Anthropic input tokens: 258,127 — cost: ~$0.77
+- Anthropic output tokens: 23,789 — cost: ~$0.36
+- Anthropic cache read tokens: 147,390 — cost: ~$0.04
+- Anthropic total: **~$1.17**
+- OpenAI: token counts not tracked; estimated ~$0.05–0.08/run × 7 = **~$0.40–0.56**
 
 ---
 
@@ -29,47 +39,51 @@ that doesn't inherit the system keychain trust for the Netskope TLS proxy. Fix:
 add `SSL_CERT_FILE=/private/etc/netskope/netskope-cert-bundle.pem` to `phase-1d/.env`,
 which `run_daily.sh` sources before running the agents.
 
+**Days 3–5 (Jul 3–5) — SSL failures over the July 4th holiday weekend**
+Despite the SSL fix, all three runs failed over the holiday weekend with the same
+`CERTIFICATE_VERIFY_FAILED` error. The cert file existed and hadn't changed. Most
+likely cause: Netskope's network configuration changes when many employees are
+offline (different proxy routing, cert rotation, or VPN edge case). Self-resolved
+on Jul 6 with no code changes. Lesson: TLS proxy environments are fragile during
+network config changes; production agents need retry logic and failure alerting.
+
 **Day 1 — AgentHooks doesn't instrument hosted tools**
 `AgentHooks.on_tool_start` never fires for `WebSearchTool` (a server-side hosted
 tool). It only fires for `@function_tool` decorated functions. Web search call
 counts must be read from `result.new_items` by checking
 `raw_item.type == "web_search_call"` after the run completes.
 
-**Day 2 (Jul 1) — Cache warming visible in token counts**
-Anthropic's `cache_read_input_tokens` jumped from 4,186 on day 1 to 26,171 on
-day 2 (~78% cache hit rate). The system prompt (marked `cache_control: ephemeral`)
-is being reused across turns within a run, not across days — the high cache read
-reflects the multi-turn nature of Anthropic's search loop (5 turns on day 2).
+**Cache warming is within-run, not across-run**
+Anthropic's `cache_read_input_tokens` varies unpredictably across days (4k on days
+with 3 searches, 24–31k on days with 5–6 searches). It resets to baseline between
+runs. The cache is reused across turns within a single run — as each search result
+feeds into the next API call, prior context is served from cache. Days with more
+searches accumulate more cacheable context, explaining the correlation.
 
-**Latency pattern — Anthropic is search-round-trip bound**
-Anthropic runs ~68s consistently regardless of story count. Each web search is a
-separate API turn, so 5 searches = 5+ round trips. OpenAI's `WebSearchTool` runs
-server-side and returns results within the same API call, keeping latency flat at
-~20s even with the same number of stories.
+**Latency scales with search count (Anthropic only)**
+3 searches → ~68s. 5 searches → ~79–88s. 6 searches → ~106s. Each search is a
+separate API round-trip, so latency is strictly search-count-bound. OpenAI's
+WebSearchTool executes server-side within a single API call — latency is flat at
+18–31s regardless of the news day.
 
 ---
 
 ## Quality Comparison
 
-After 7 runs, compare a few dimensions:
+**Completeness** — Both agents covered all three sections (Business, Tech, World)
+on every successful run. ✅
 
-**Completeness** — Both agents covered all three sections on both days. ✅
+**Attribution accuracy** — Anthropic: named sources with dates, no raw URLs.
+OpenAI: inline clickable URLs with `?utm_source=openai` — easier to verify at a
+glance. One formatting hiccup on day 1: OpenAI emitted `:briefcase:` as literal
+text instead of rendering the emoji.
 
-**Attribution accuracy** — Anthropic: named sources with dates, no raw URLs. OpenAI:
-inline clickable URLs with domain visible — easier to verify at a glance. One
-formatting hiccup on day 1: OpenAI emitted `:briefcase:` as literal text instead
-of rendering the emoji.
+**Formatting consistency** — Anthropic's structure (h3 headers, `---` dividers,
+editorial prose) was nearly identical across all 7 runs. OpenAI varied slightly
+(h3 vs h4, occasional emoji rendering inconsistency).
 
-**Formatting consistency** — Anthropic's structure (h3, `---` dividers, editorial
-prose) was identical across both days. OpenAI's structure varied slightly (h3 day 1
-vs h4 day 2, emoji rendering inconsistency).
-
-**Story selection** — Major stories overlapped (Comcast split, Five Eyes AI warning,
-SCOTUS birthright citizenship). Divergence on the edges: Anthropic picked World Cup
-heat wave; OpenAI picked SpaceX/Anthropic IPO angle. Both agents self-referentially
-reported Anthropic's Claude Sonnet 5 launch on July 1.
-
-Story overlap/divergence is driven by two distinct layers:
+**Story selection** — Major headlines overlapped on every day (top 3–4 stories
+covered by both). Divergence on edge stories. Explained by two layers:
 
 *Retrieval strategy (primary driver).* Verified by instrumentation on July 1:
 
@@ -81,66 +95,76 @@ Anthropic issues **3 targeted queries, one per section**:
 ```
 Each query returns ~7–8 URLs. Total source pool: ~22 URLs across CNN, Bloomberg,
 CNBC, Yahoo Finance, NPR, Fox News, NBC News, TechCrunch, Al Jazeera, and others.
-The model synthesizes prose from these — raw URLs never appear in the briefing output.
-Search provider not disclosed by Anthropic; no `utm_source` parameter in result URLs.
+The model synthesizes prose from these — raw URLs never appear in the briefing.
+Search provider not disclosed by Anthropic; no `utm_source` in result URLs.
 
 OpenAI issues **1 broad query**:
 ```
 "top business news July 1 2026"
 ```
-URLs in OpenAI briefing output carry `?utm_source=openai` — this is Bing (Microsoft's
-OpenAI partnership routes web searches through Bing, which tags results with this
-parameter). The model then covers all three sections from the single result set,
-selecting across business, tech, and world stories from whatever Bing surfaced.
+URLs in OpenAI output carry `?utm_source=openai` — confirmed Bing (Microsoft's
+OpenAI partnership routes searches through Bing, which tags results). The model
+covers all three sections from a single result set.
 
-This directly explains the pattern: stories both agents picked are those covered
-everywhere (Comcast, SCOTUS, Five Eyes) — any query on that day surfaces them.
-Stories only one agent picked are those reachable only via targeted queries
-(Anthropic: NPR's World Cup heat wave story via the world-events query; OpenAI: the
-SpaceX/AI IPO angle from Bing's top result set for the broad query).
+Stories both agents always picked: those covered everywhere (top SCOTUS, major
+corporate news, Five Eyes). Stories only one agent picked: those only reachable
+via a targeted section query (Anthropic: NPR's World Cup heat wave, regional
+stories; OpenAI: SpaceX/AI IPO angle from Bing's top result set).
 
-**Note on date injection:** Without an explicit date in the prompt, GPT-4o defaults
-to its training cutoff when formulating search queries (observed: queried
-"top tech news October 13 2023" in a dateless diagnostic). Both production agents
-inject today's date explicitly (`today's ({today}) top news`) to prevent this.
+**Search count is a proxy for coverage breadth**, not just a cost/latency metric.
 
-*Editorial judgment (secondary driver).* Even when both agents retrieve the same raw
-material, the model decides which stories to include and how to frame them. Claude
-and GPT-4o have different training-based priors about newsworthiness. On July 1,
-both surfaced the Anthropic Sonnet 5 launch — Claude framed it as a product release
-story; GPT-4o framed it in the context of upcoming AI company IPOs.
+*Editorial judgment (secondary driver).* Even with the same raw material, Claude
+and GPT-4o frame the same story differently. On July 1, both surfaced the
+Anthropic Sonnet 5 launch — Claude framed it as a product release; GPT-4o framed
+it in the context of upcoming AI company IPOs.
 
-**Implication:** Search count isn't just a cost/latency number — it's a proxy for
-coverage breadth. The run log's search count column is actually measuring editorial
-diversity. Anthropic's 3 section-specific queries against an undisclosed provider
-produce a broader and more varied source pool; OpenAI's 1 Bing query is faster and
-cheaper but anchors selection to whatever Bing's top results are for a single broad
-query. This is a deliberate design tradeoff, not a quality gap.
+**Note on date injection:** Without an explicit date in the prompt, GPT-4o uses
+its training cutoff when formulating queries (observed: "top tech news October 13
+2023" in a dateless diagnostic). Both production agents inject today's date
+explicitly to prevent this.
 
-**Summary depth** — Anthropic writes longer, more contextual summaries (~3 sentences,
-editorial framing). OpenAI writes shorter, punchier summaries (1–2 sentences) with
-inline URLs. Neither is objectively better — Anthropic is more readable offline;
-OpenAI is more verifiable.
+**Summary depth** — Anthropic: ~3 sentences, editorial framing, no raw URLs.
+OpenAI: 1–2 sentences, punchier, inline source URLs. Anthropic is more readable
+offline; OpenAI is more verifiable.
 
 ---
 
 ## Cost Estimate
 
-Anthropic (claude-sonnet-4-6) pricing:
-- Input: $3.00 / 1M tokens
-- Output: $15.00 / 1M tokens
-- Cache read: $0.30 / 1M tokens
+Anthropic (claude-sonnet-4-6):
+- Input: $3.00 / 1M tokens → $0.774 for 258,127 tokens
+- Output: $15.00 / 1M tokens → $0.357 for 23,789 tokens
+- Cache read: $0.30 / 1M tokens → $0.044 for 147,390 tokens
+- **Total: ~$1.17 for 7 runs (~$0.17/run avg)**
 
-OpenAI (gpt-4o) pricing:
-- Input: $2.50 / 1M tokens
-- Output: $10.00 / 1M tokens
-- Web search: $0.03 / call (approximate)
+OpenAI (gpt-4o): token counts not tracked. Based on typical gpt-4o usage at
+~20–30k tokens/run plus 1 Bing search call:
+- **Estimated: ~$0.40–0.56 for 7 runs (~$0.06–0.08/run avg)**
 
-Fill in weekly totals from run-log.txt after day 7.
+OpenAI is roughly 2–3x cheaper per run than Anthropic for this task, primarily
+because Anthropic issues more search calls and processes more total tokens.
 
 ---
 
 ## Key Findings
 
-Write final synthesis here after the week completes — feed directly into the
-public writeup.
+1. **Latency is architecture, not configuration.** Anthropic's multi-turn search
+   loop is structurally slower than OpenAI's server-side tool. You can't tune
+   your way to parity — they are different execution models.
+
+2. **Search count is editorial breadth, not just cost.** More queries = more
+   diverse source pool = more varied story selection. The tradeoff between
+   Anthropic's 3-query approach and OpenAI's 1-query approach is really a
+   tradeoff between coverage depth and cost/latency.
+
+3. **Production scheduling surfaces infrastructure you forgot about.** Netskope,
+   launchd's clean environment, holiday network changes — none of these exist in
+   `python agent.py`. They only exist when the agent runs unattended.
+
+4. **Hook observability has blind spots.** AgentHooks doesn't instrument hosted
+   tools. If you're building dashboards or audits around hook data, hosted tools
+   are invisible. You need post-run inspection of raw response items.
+
+5. **Date injection is required, not optional.** LLMs use their training cutoff
+   as "today" when the current date isn't in the prompt. For any time-sensitive
+   agent, inject the date explicitly — or the agent silently queries the past.

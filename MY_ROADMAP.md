@@ -71,7 +71,7 @@
 - [x] **Phase 1a:** ~100-line scratch agent using `anthropic.messages.create` (web_search, read_file, write_file)
 - [x] **Phase 1b:** Same agent rebuilt on Claude Agent SDK (CLAUDE.md, Skill, PostToolUse hook, Task sub-agent)
 - [x] **Phase 1c:** Same agent rebuilt on OpenAI Agents SDK — note what differs structurally
-- [ ] **Phase 1d:** Daily-briefing agent running for 1 week on real data → public GitHub repo + writeup
+- [x] **Phase 1d:** Daily-briefing agent running for 1 week on real data → public GitHub repo + writeup
 - [ ] **Phase 2a:** Research-analyst deep agent in LangGraph Python (PostgresSaver, human-in-the-loop, LangSmith trace URL)
 - [ ] **Phase 2b:** Same agent in Mastra (TypeScript) — public GitHub repo + comparison writeup
 - [ ] **Phase 3:** ~1,500-line Python mini-harness (loop, dispatch, compression, sub-agents, hooks, OTEL, SQLite resume) + 1,000-word post-mortem comparing to Claude Agent SDK and Deep Agents → public GitHub + writeup
