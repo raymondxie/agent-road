@@ -46,11 +46,13 @@ class ResearchState(TypedDict):
 
 def plan(state: ResearchState) -> dict:
     print(f"  → Planning research queries for {state['company']}...")
+    today = date.today().isoformat()
     response = llm.invoke(
-        f"You are a research analyst. Generate exactly 5 targeted search queries "
-        f"to research {state['company']} as a company.\n"
+        f"You are a research analyst. Today's date is {today}. "
+        f"Generate exactly 5 targeted search queries to research {state['company']} as a company.\n"
         f"Cover: (1) business model and revenue, (2) scale and financials, "
-        f"(3) main competitors, (4) recent news in the last 60 days, (5) key risks.\n"
+        f"(3) main competitors, (4) recent news in the last 60 days as of {today}, (5) key risks.\n"
+        f"Make sure the news query explicitly references {today[:7]} or recent months to get current results.\n"
         f"Return only the 5 queries, one per line, no numbering or bullets."
     )
     queries = [q.strip() for q in response.content.strip().splitlines() if q.strip()][:5]
@@ -137,7 +139,8 @@ def build_graph():
 def main() -> None:
     args = sys.argv[1:]
     resume = "--resume" in args
-    company_args = [a for a in args if a != "--resume"]
+    fresh = "--fresh" in args
+    company_args = [a for a in args if a not in ("--resume", "--fresh")]
 
     if company_args:
         company = " ".join(company_args)
@@ -154,7 +157,9 @@ def main() -> None:
             interrupt_before=["write"],
         )
 
-        thread_id = f"{company.lower().replace(' ', '-')}-{date.today().isoformat()}"
+        slug = company.lower().replace(" ", "-")
+        suffix = f"-{int(date.today().toordinal())}" if fresh else ""
+        thread_id = f"{slug}-{date.today().isoformat()}{suffix}"
         config = {"configurable": {"thread_id": thread_id}}
 
         if resume:
