@@ -6,3 +6,4 @@ diag-output.txt
 phase-1d/briefings/run-log.txt
 phase-1d/briefings/launchd-out.txt
 phase-1d/briefings/launchd-err.txt
+phase-2a/.venv/
