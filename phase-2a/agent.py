@@ -140,7 +140,15 @@ def main() -> None:
     args = sys.argv[1:]
     resume = "--resume" in args
     fresh = "--fresh" in args
-    company_args = [a for a in args if a not in ("--resume", "--fresh")]
+    feedback_flag = next(
+        (args[i + 1] for i, a in enumerate(args) if a == "--feedback" and i + 1 < len(args)),
+        None,
+    )
+    company_args = [
+        a for i, a in enumerate(args)
+        if a not in ("--resume", "--fresh", "--feedback")
+        and (i == 0 or args[i - 1] != "--feedback")
+    ]
 
     if company_args:
         company = " ".join(company_args)
@@ -184,9 +192,13 @@ def main() -> None:
             print(snapshot.values.get("analysis", ""))
 
         print("=" * 60)
-        feedback = input(
-            "\nAdditional context or analyst notes (press Enter to proceed): "
-        ).strip()
+        if feedback_flag is not None:
+            feedback = feedback_flag
+            print(f"\nUsing --feedback: {feedback}")
+        else:
+            feedback = input(
+                "\nAdditional context or analyst notes (press Enter to proceed): "
+            ).strip()
         if feedback:
             app.update_state(config, {"human_feedback": feedback})
 
