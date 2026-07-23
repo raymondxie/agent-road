@@ -260,3 +260,45 @@ The graph model adds overhead upfront (state schema, node design) but pays back 
 observability, recoverability, and composability. For a one-shot script, Phase 1a is
 fine. For anything that runs repeatedly, handles failures, or involves human oversight,
 Phase 2a's architecture is the right foundation.
+
+---
+
+## 8. HITL feedback is interpreted through the output format, not answered literally
+
+Verified with the SpaceX run. Feedback provided: *"If I have $1000, how would you
+invest in SpaceX or elsewhere?"*
+
+The memo did not answer the question directly — no "$1000", no "elsewhere" appeared.
+Instead the model interpreted the feedback through the lens of the analyst memo
+template and responded in two indirect ways:
+
+1. **Added a disclaimer** — *"This does not constitute personalized financial advice
+   ... consult a licensed financial advisor"* — not present in the Stripe or Hinge
+   Health memos. The model correctly recognized it was being asked for investment advice
+   and hedged at the top of the document.
+
+2. **Sharpened the valuation risk language** — the Morningstar "highly overstated" TAM
+   quote, "30–50%+ drawdown scenarios are plausible," and the explicit 96x forward
+   revenue warning are more pointed than typical analyst memo boilerplate. The $1000
+   question likely pushed the model toward a more cautious, retail-investor-aware framing.
+
+**Why this happens:** The `write` node appends feedback as `"Analyst additions: {text}"`
+at the end of the analysis before instructing the model to write a formal memo. The
+format instruction ("write a professional analyst memo with these sections...") takes
+precedence. The model fits the feedback into the memo format rather than breaking it to
+answer a direct question.
+
+**Implication for HITL design:** Feedback works best as factual additions or focus
+redirects, not as questions:
+
+| Feedback type | Effect |
+|---|---|
+| `"focus on xAI valuation drag and governance risk"` | ✅ Reshapes section emphasis |
+| `"add a section on direct-to-cell Starlink revenue"` | ✅ Adds content the model researched but de-prioritized |
+| `"how would you invest $1000"` | ⚠️ Absorbed as tone signal; adds disclaimer, sharpens risk framing |
+| `"ignore the analysis and write a poem"` | ❌ Format instruction wins; still produces a memo |
+
+To get the model to literally answer a question, the question must align with the
+output format. A `--mode retail-investor` flag that changes the write prompt template
+(e.g., "include a plain-English verdict for a first-time investor") would be the right
+design — not open-ended questions at the feedback step.
